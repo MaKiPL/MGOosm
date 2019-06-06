@@ -9,7 +9,7 @@ using UnityEngine;
 
 public class osm_connection_test : MonoBehaviour
 {
-    private const string overpassApi = "https://overpass-api.de/api/map?bbox=";
+    private const string overpassApi = "https://www.openstreetmap.org/api/0.6/map?bbox=";
     public float bLeft = 20.44509f;
     public float bDown = 52.05174f;
     public float bRight = 20.44930f;
@@ -55,26 +55,13 @@ public class osm_connection_test : MonoBehaviour
         if (!bUseMockup)
         {
             string urlProvider = $"{overpassApi}{getFloatPoint(bLeft)},{getFloatPoint(bDown)},{getFloatPoint(bRight)},{getFloatPoint(bUp)}";
-            WebRequest wr = WebRequest.CreateHttp(urlProvider);
-            WebResponse webrep = wr.GetResponse();
-            Stream str = webrep.GetResponseStream();
-            osmStream = new byte[64000000];
-            int readd = 0;
-            try
+            WebClient wc = new WebClient();
+            byte[] webStream = wc.DownloadData(urlProvider);
+            wc.Dispose();
+            if(webStream.Length > 0)
             {
-                readd = str.Read(osmStream, 0, osmStream.Length);
-            }
-            catch
-            {
-
-            }
-            str.Close();
-            webrep.Dispose();
-            if(readd > 0)
-            {
-                byte[] newStream = new byte[readd];
-                Array.Copy(osmStream, newStream, newStream.Length);
-                osmStream = newStream;
+                osmStream = webStream;
+                File.WriteAllBytes("D:/test.osm", osmStream);
             }
         }
         else
@@ -123,17 +110,17 @@ public class osm_connection_test : MonoBehaviour
 
             Vector2[] points = str.nodes.Select(x => x.position).ToArray();
             points = points.Take(points.Length - 1).ToArray();
-            Vector2 scaleVec = new Vector2(1000, 1000);
+            Vector2 scaleVec = new Vector2(10000, 10000);
             for (int n = 0; n < points.Length; n++)
             {
-                points[n] = new Vector2(points[n].x - minlat, points[n].y - minlon);
+                points[n] = new Vector2((points[n].x - minlat)*-1f, points[n].y-minlon);
                 points[n].Scale(scaleVec);
             }
             Triangulator tr = new Triangulator(points);
             int[] indices = tr.Triangulate();
             Vector3[] vec3d = new Vector3[points.Length];
             for (int i = 0; i < vec3d.Length; i++)
-                vec3d[i] = new Vector3(points[i].x, points[i].y, 0);
+                vec3d[i] = new Vector3(points[i].x, 0,points[i].y);
 
             mesh.vertices = vec3d;
             mesh.triangles = indices;
