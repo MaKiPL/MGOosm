@@ -149,11 +149,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebebe39bf0b28c54fa57504ada338bf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bLeft: 20.44509
-  bDown: 52.05174
-  bRight: 20.4493
-  bUp: 52.0532
-  bUseMockup: 1
+  bLeft: 20.44937
+  bDown: 52.05572
+  bRight: 20.45779
+  bUp: 52.05866
+  bUseMockup: 0
   mockupPath: D:\map
 --- !u!4 &91584196
 Transform:
