@@ -86,18 +86,31 @@ public class osm_connection_test : MonoBehaviour
         ParseNodes(nodes);
         ParseWays(ways);
 
-
-        CreateBuildings();
+        Create3D();
     }
 
-    private void CreateBuildings()
+    private void Create3D()
     {
         foreach(var str in WayStructs)
         {
-            //if (str.id != 196576473)
-            //    continue;
-            
+            for(int n=0; n<str.tags.Length; n++)
+            {
+                string tagKey = str.tags[n].key;
+                switch(tagKey)
+                {
+                    case "building":
+                        CreateBuilding(str);
+                        break;
+                        //TODO - new types
+                    default:
+                        continue;
+                }
+            }
+        }
+    }
 
+    private void CreateBuilding(WayStruct str)
+    {
             GameObject go = new GameObject(str.id.ToString());
 
             go.AddComponent<MeshFilter>();
@@ -130,7 +143,6 @@ public class osm_connection_test : MonoBehaviour
             
 
             //mesh.vertices = new Vector3[str.nodes.Length];
-        }
     }
 
     private void ParseWays(XmlNodeList ways)
