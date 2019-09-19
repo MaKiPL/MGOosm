@@ -17,6 +17,8 @@ public class osm_connection_test : MonoBehaviour
 
     public bool bUseMockup = false;
     public string mockupPath = "D:\\map";
+    public Material buildingMaterial;
+    
 
 
 
@@ -101,7 +103,10 @@ public class osm_connection_test : MonoBehaviour
                     case "building":
                         CreateBuilding(str);
                         break;
-                        //TODO - new types
+                    //TODO - new types
+                    case "highway":
+                        CreateRoad(str);
+                        break;
                     default:
                         continue;
                 }
@@ -109,9 +114,52 @@ public class osm_connection_test : MonoBehaviour
         }
     }
 
+    private void CreateRoad(WayStruct str)
+    {
+        if (str.tags[0].value == "yes")
+            return;
+        
+        GameObject go = new GameObject($"highway_{str.tags[0].value}_{str.id.ToString()}");
+
+        go.AddComponent<LineRenderer>();
+
+        var mf = go.GetComponent<LineRenderer>();
+        
+        float roadWidth = .1f;
+        switch(str.tags[0].value)
+        {
+            case "service":
+                roadWidth = 0.1f;
+                break;
+            case "sidewalk":
+            case "footway":
+                roadWidth = .05f;
+                break;
+            case "residental":
+                roadWidth = 1f;
+                break;
+        }
+
+        Vector2[] points = str.nodes.Select(x => x.position).ToArray();
+        points = points.Take(points.Length - 1).ToArray();
+        Vector2 scaleVec = new Vector2(10000, 10000);
+        for (int n = 0; n < points.Length; n++)
+        {
+            points[n] = new Vector2((points[n].x - minlat) * -1f, points[n].y - minlon);
+            points[n].Scale(scaleVec);
+        }
+        Vector3[] vec3d = new Vector3[points.Length];
+        for (int i = 0; i < vec3d.Length; i++)
+            vec3d[i] = new Vector3(points[i].x, 0, points[i].y);
+        mf.positionCount = vec3d.Length;
+        mf.SetPositions(vec3d);
+        mf.startWidth = roadWidth;
+        mf.endWidth = roadWidth;
+    }
+
     private void CreateBuilding(WayStruct str)
     {
-            GameObject go = new GameObject(str.id.ToString());
+            GameObject go = new GameObject($"building_{str.id.ToString()}");
 
             go.AddComponent<MeshFilter>();
             go.AddComponent<MeshRenderer>();
@@ -139,10 +187,7 @@ public class osm_connection_test : MonoBehaviour
             mesh.triangles = indices;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-
-            
-
-            //mesh.vertices = new Vector3[str.nodes.Length];
+        go.GetComponent<MeshRenderer>().material = buildingMaterial;
     }
 
     private void ParseWays(XmlNodeList ways)
